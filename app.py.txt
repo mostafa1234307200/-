@@ -1,0 +1,42 @@
+import streamlit as st
+import numpy as np
+import cv2
+from PIL import Image
+
+# إعداد الصفحة
+st.set_page_config(page_title="مدرسة الأردن الأساسية المختلطة", layout="centered")
+
+# واجهة المستخدم
+st.markdown("<h1 style='text-align: center;'>مدرسة الأردن الأساسية المختلطة</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>كيف ستبدو بعد 30 سنة من التدخين؟</h3>", unsafe_allow_html=True)
+
+# رفع الصورة
+uploaded_file = st.file_uploader("ارفع صورة (jpg, jpeg, png)", type=["jpg", "jpeg", "png"])
+
+# دالة التأثير
+def apply_aging_effect(img):
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+    # تغميق
+    dark = cv2.convertScaleAbs(img, alpha=0.6, beta=-50)
+
+    # ضبابية
+    blurred = cv2.GaussianBlur(dark, (9, 9), 3)
+
+    # ضوضاء
+    noise = np.random.normal(0, 15, blurred.shape).astype(np.uint8)
+    aged = cv2.addWeighted(blurred, 0.9, noise, 0.1, 0)
+
+    aged = cv2.cvtColor(aged, cv2.COLOR_BGR2RGB)
+    return aged
+
+# عند رفع الصورة
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("RGB")
+    img_np = np.array(image)
+
+    st.image(img_np, caption="صورتك الأصلية", use_column_width=True)
+
+    aged_image = apply_aging_effect(img_np)
+
+    st.image(aged_image, caption="بعد 30 سنة من التدخين", use_column_width=True)
